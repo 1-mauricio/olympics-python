@@ -3,7 +3,8 @@ import mysql.connector
 import functions
 from mysql.connector import errorcode
 
-aux = 0
+aux_menu_inicio = 0
+aux_menu_database = 0
 aux_all = 0
 end_all = False
 menu_inicio = True
@@ -15,11 +16,11 @@ while not end_all:
 	if aux_all == 0:
 		while menu_inicio:
 			try:
-				if aux == 0:
+				if aux_menu_inicio == 0:
 					functions.menu_inicial()
-					aux += 1
+					aux_menu_inicio = 1
 
-				menu_inicial = input(": ")
+				menu_inicial = input("Digite uma opção: ")
 
 				if menu_inicial == "1":
 					database = input("Digite o nome do banco de dados para tentar a conexão: ")
@@ -27,7 +28,7 @@ while not end_all:
 					cursor = cnx.cursor()
 
 					print("Conexão feita com sucesso")
-					aux_all += 1
+					aux_all = 1
 					menu_inicio = False
 					menu_database = True
 
@@ -65,46 +66,106 @@ while not end_all:
 					functions.show_databases(cnx_i, cursor_i)
 				
 				elif menu_inicial == "6":
-					aux = 0
+					aux_menu_inicio = 0
 				
+				else:
+					print("A entrada digitada não condiz com uma opção. Tente novamente.\n")
+
+			except mysql.connector.Error as err:
+  				print(f"Algo deu errado: {err}")
+
 			except mysql.connector.errors.DatabaseError:
 				print("Não existe nenhum banco de dados com esse nome. Você pode criar um ou tentar outro nome.")
 
 	elif aux_all == 1:
 		while menu_database:
-			functions.menu_tabela()
+			if aux_menu_database == 0:
+				functions.menu_database(database)
+				aux_menu_database = 1
 			menu_data = int(input(": "))
 
 			if menu_data == 1:
 				functions.show_tables(cursor)
+
+			elif menu_data == 3:
+				table = input("Digite o nome da tabela: ")
+				functions.drop_table(table, cnx, cursor)
 			
-			elif menu_data == 2:
-				aux_all += 1
+			elif menu_data == 4:
+				aux_all = 2
 				menu_database = False
 				menu_olympics = True
 			
-			elif menu_data == 3:
-				aux_all -= 1
-				aux = 0
+			elif menu_data == 5:
+				aux_all = 0
+				aux_menu_inicio = 0
 				menu_database = False
 				menu_inicio = True
+
+			elif menu_data == 6:
+				aux_menu_database = 0
+
+			else:
+				print("A entrada digitada não condiz com uma opção. Tente novamente.\n")
 				
 	elif aux_all == 2:
 		while menu_olympics:
+			functions.menu_olympics()
 			menu_oly = int(input(": "))
 			if menu_oly == 1:
-				functions.create_medals(cnx, cursor)
+				print("TABELA: athletes")
+				athletes = True
+				while athletes:
+					menu_medals = int(input("Digite alguma opção para a tabela athletes: "))
+					if menu_medals == 1:
+						functions.create_table("athletes", cursor)
+					elif menu_medals == 2:
+						functions.drop_table("athletes", cnx, cursor)
+					elif menu_medals == 3:
+						functions.insert_medals(cnx, cursor)
+					elif menu_medals == 4:
+						functions.delete_table("athletes", 'gold < 1000', cnx, cursor)
+					elif menu_medals == 5:
+						pass
+					elif menu_medals == 6:
+						athletes = False
+					elif menu_medals == 7:
+						athletes = False
+						aux_all = 1
+						menu_olympics = False
+						menu_database = True
+				
 
-			if menu_oly == 2:
-				functions.delete_table("medals", 'gold < 1000', cnx, cursor)
+			elif menu_oly == 2:
+				pass
 
-			if menu_oly == 3:
-				functions.insert_medals(cnx, cursor)
+			elif menu_oly == 3:
+				pass
 
-			if menu_oly == 4:
-				functions.drop_table("medals", cnx, cursor)
+			elif menu_oly == 4:
+				print("TABELA: Medals")
+				medals = True
+				while medals:
+					menu_medals = int(input("Digite alguma opção para a tabela Medals: "))
+					if menu_medals == 1:
+						functions.create_table("medals", cursor)
+					elif menu_medals == 2:
+						functions.drop_table("medals", cnx, cursor)
+					elif menu_medals == 3:
+						functions.insert_medals(cnx, cursor)
+					elif menu_medals == 4:
+						functions.delete_table("medals", 'gold < 1000', cnx, cursor)
+					elif menu_medals == 5:
+						pass
+					elif menu_medals == 6:
+						medals = False
+					elif menu_medals == 7:
+						medals = False
+						aux_all = 1
+						menu_olympics = False
+						menu_database = True
 			
 			elif menu_oly == 5:
-				aux_all -= 1
+				aux_all = 1
 				menu_olympics = False
 				menu_database = True
